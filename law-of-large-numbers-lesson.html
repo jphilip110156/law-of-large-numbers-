@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Law of Large Numbers — Interactive Lesson &amp; Lab</title>
+<style>
+  :root {
+    --navy: #1a2b4a;
+    --accent: #2e5aac;
+    --accent-dark: #1f3f80;
+    --accent-light: #eaf1fb;
+    --good: #1e8e5a;
+    --good-bg: #eafaf2;
+    --bad: #c0392b;
+    --bad-bg: #fdecea;
+    --gray: #5b6472;
+    --border: #d7dee8;
+    --paper: #ffffff;
+    --bg: #f4f6fa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: #1c2430;
+  }
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 28px 18px 60px;
+  }
+  header.top h1 {
+    font-size: 1.55rem;
+    margin: 0 0 4px;
+    color: var(--navy);
+  }
+  header.top p {
+    margin: 0 0 20px;
+    color: var(--gray);
+    font-size: 0.95rem;
+    max-width: 700px;
+  }
+  nav.tabs {
+    display: flex;
+    gap: 6px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  nav.tabs button {
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 10px 18px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--gray);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+  }
+  nav.tabs button.active {
+    color: var(--accent-dark);
+    border-bottom-color: var(--accent);
+  }
+  nav.tabs button:hover { color: var(--accent-dark); }
+
+  section.tab-panel { display: none; }
+  section.tab-panel.active { display: block; }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(20,30,60,0.04);
+  }
+  .card h2 {
+    margin-top: 0;
+    font-size: 1.15rem;
+    color: var(--navy);
+  }
+  .card h3 {
+    font-size: 1rem;
+    color: var(--navy);
+    margin-bottom: 6px;
+  }
+  .card p { line-height: 1.6; font-size: 0.95rem; }
+  .formula {
+    background: var(--accent-light);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-family: "Cambria Math", Cambria, Georgia, serif;
+    margin: 14px 0;
+    display: inline-block;
+  }
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: var(--accent-light);
+    padding: 10px 16px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.9rem;
+    margin: 14px 0;
+  }
+  .goto-sim {
+    display: inline-block;
+    margin-top: 6px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .goto-sim:hover { background: var(--accent-dark); }
+
+  /* ---- Simulate tab ---- */
+  .exp-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .exp-picker button {
+    border: 1px solid var(--border);
+    background: #fff;
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--gray);
+    cursor: pointer;
+  }
+  .exp-picker button.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .custom-controls {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    font-size: 0.9rem;
+    color: var(--gray);
+  }
+  .custom-controls.show { display: flex; }
+  .custom-controls input[type="range"] { flex: 1; max-width: 260px; }
+  .custom-controls .p-val { font-weight: 700; color: var(--navy); min-width: 46px; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-box {
+    background: var(--accent-light);
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .stat-box .label { font-size: 0.72rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.03em; }
+  .stat-box .value { font-size: 1.15rem; font-weight: 700; color: var(--navy); margin-top: 2px; }
+
+  canvas#chart {
+    width: 100%;
+    height: 320px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: block;
+  }
+  .legend {
+    display: flex;
+    gap: 18px;
+    font-size: 0.82rem;
+    color: var(--gray);
+    margin: 8px 0 16px;
+  }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 16px; height: 3px; display: inline-block; border-radius: 2px; }
+
+  .controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 6px;
+  }
+  .btn {
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); }
+  .btn-secondary { background: var(--accent-light); color: var(--accent-dark); }
+  .btn-secondary:hover { background: #dbe7f8; }
+  .btn-ghost { background: none; border: 1px solid var(--border); color: var(--gray); }
+  .btn-ghost:hover { background: #f1f3f7; }
+  .controls-row input[type="number"] {
+    width: 90px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.88rem;
+  }
+  .last-outcome {
+    font-size: 0.85rem;
+    color: var(--gray);
+    margin-top: 10px;
+    min-height: 20px;
+  }
+  .last-outcome strong { color: var(--navy); }
+
+  /* ---- Assignment tab ---- */
+  .question {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+  .question:first-of-type { border-top: none; margin-top: 0; padding-top: 0; }
+  .question h3 { margin-bottom: 10px; }
+  .subpart { margin-bottom: 16px; }
+  .subpart label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    color: #2a3345;
+  }
+  .subpart .answer-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .subpart input[type="text"], .subpart textarea {
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+  }
+  .subpart input[type="text"] { width: 180px; }
+  .subpart textarea { width: 100%; min-height: 64px; resize: vertical; }
+  .check-btn {
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .check-btn:hover { background: #0f1d38; }
+  .fb {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 6px;
+    min-height: 18px;
+  }
+  .fb.correct { color: var(--good); }
+  .fb.incorrect { color: var(--bad); }
+  .fb.recorded { color: var(--accent-dark); }
+
+  /* ---- Results tab ---- */
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .summary-box {
+    background: var(--accent-light);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .summary-box .big { font-size: 1.6rem; font-weight: 700; color: var(--navy); }
+  .summary-box .small { font-size: 0.8rem; color: var(--gray); margin-top: 4px; }
+  .review-item {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    font-size: 0.88rem;
+  }
+  .review-item .q-label { font-weight: 700; color: var(--navy); margin-right: 6px; }
+  .review-item .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: 8px;
+  }
+  .tag.correct { background: var(--good-bg); color: var(--good); }
+  .tag.incorrect { background: var(--bad-bg); color: var(--bad); }
+  .tag.recorded { background: var(--accent-light); color: var(--accent-dark); }
+  .tag.empty { background: #f1f3f7; color: var(--gray); }
+
+  @media (max-width: 640px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .summary-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <h1>Law of Large Numbers — Interactive Lesson &amp; Lab</h1>
+    <p>Explore, simulate, and prove for yourself that as the number of trials grows, the sample mean of a random experiment converges to its theoretical mean.</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="learn">Learn</button>
+    <button class="tab-btn" data-tab="simulate">Simulate</button>
+    <button class="tab-btn" data-tab="assignment">Assignment</button>
+    <button class="tab-btn" data-tab="results">Results</button>
+  </nav>
+
+  <!-- ============ LEARN TAB ============ -->
+  <section class="tab-panel active" id="tab-learn">
+    <div class="card">
+      <h2>What is the Law of Large Numbers?</h2>
+      <p>
+        Imagine flipping a fair coin. Any single flip is unpredictable — you might get several heads in a row purely by chance.
+        But if you flip that same coin thousands of times, the <em>proportion</em> of heads settles down and gets very close to 50%.
+        That settling-down behavior is the <strong>Law of Large Numbers (LLN)</strong>.
+      </p>
+      <div class="callout">
+        <strong>Law of Large Numbers (informal statement):</strong> As the number of independent trials of a random
+        experiment increases, the sample mean (the average of the observed outcomes) converges to the experiment's
+        theoretical mean — also called the <strong>expected value</strong>.
+      </div>
+      <p>It does <strong>not</strong> say that random outcomes "even out" in the short run (that misconception is called the
+        gambler's fallacy). A coin has no memory — after 10 heads in a row, the next flip is still 50/50. What the LLN
+        guarantees is that any short-run streak gets diluted and washed out as more and more trials pile up.</p>
+    </div>
+
+    <div class="card">
+      <h2>The math behind it</h2>
+      <p>For a random variable with possible values <em>x</em> and probabilities <em>P(x)</em>, the theoretical
+        (expected) mean is:</p>
+      <div class="formula">μ = Σ [ x · P(x) ]</div>
+      <p>After <em>n</em> trials with observed outcomes x₁, x₂, …, xₙ, the sample mean is:</p>
+      <div class="formula">x̄ₙ = ( x₁ + x₂ + … + xₙ ) / n</div>
+      <p>The Law of Large Numbers says: as <em>n → ∞</em>, x̄ₙ → μ. In practice, we can't run infinitely many trials —
+        but the more trials we run, the closer we typically get, and the less our average bounces around.</p>
+    </div>
+
+    <div class="card">
+      <h2>A quick example</h2>
+      <p>A fair six-sided die has outcomes 1 through 6, each equally likely (probability 1/6). Its theoretical mean is:</p>
+      <div class="formula">μ = (1 + 2 + 3 + 4 + 5 + 6) / 6 = 3.5</div>
+      <p>If you roll it only 5 times, your average might be 2.4 or 4.8 — pure luck plays a big role with so few trials.
+        But roll it 5,000 times, and your average will almost certainly land very close to 3.5.</p>
+      <p><strong>Try it yourself:</strong> head to the Simulate tab, pick an experiment, and watch the running average
+        chase down the theoretical mean as the trial count grows.</p>
+      <button class="goto-sim" id="learnGotoSim">Go to Simulate →</button>
+    </div>
+
+    <div class="card">
+      <h2>Why it matters</h2>
+      <p>The Law of Large Numbers is the reason insurance companies can price policies, casinos stay profitable over
+        millions of bets even while individual gamblers win big, pollsters trust large survey samples more than small
+        ones, and quality-control inspectors can estimate a factory's defect rate from a large batch of products.
+        Small samples are noisy; large samples are trustworthy.</p>
+    </div>
+  </section>
+
+  <!-- ============ SIMULATE TAB ============ -->
+  <section class="tab-panel" id="tab-simulate">
+    <div class="card">
+      <h2>Choose an experiment</h2>
+      <div class="exp-picker">
+        <button class="exp-btn active" data-exp="coin">🪙 Coin Flip</button>
+        <button class="exp-btn" data-exp="die">🎲 Die Roll</button>
+        <button class="exp-btn" data-exp="custom">⚙️ Custom (Biased Coin)</button>
+      </div>
+      <div class="custom-controls" id="customControls">
+        <label for="pSlider">Probability of success (value = 1):</label>
+        <input type="range" id="pSlider" min="0" max="1" step="0.01" value="0.5">
+        <span class="p-val" id="pVal">0.50</span>
+      </div>
+      <p id="expDescription" style="color:var(--gray); font-size:0.88rem; margin-top:2px;"></p>
+
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="label">Trials (n)</div>
+          <div class="value" id="statN">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Sample Mean x̄ₙ</div>
+          <div class="value" id="statMean">—</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">Theoretical Mean μ</div>
+          <div class="value" id="statTheory">0.5</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">|x̄ₙ − μ|</div>
+          <div class="value" id="statDiff">—</div>
+        </div>
+      </div>
+
+      <canvas id="chart"></canvas>
+      <div class="legend">
+        <span><i class="swatch" style="background:#2e5aac;"></i> Running sample mean</span>
+        <span><i class="swatch" style="background:#c0392b; border-top:2px dashed #c0392b; height:0;"></i> Theoretical mean μ</span>
+      </div>
+
+      <div class="controls-row">
+        <button class="btn btn-primary" id="stepOnceBtn">Run 1 trial</button>
+        <input type="number" id="batchN" value="100" min="1" max="20000" step="1">
+        <button class="btn btn-secondary" id="runBatchBtn">Run this many trials</button>
+        <button class="btn btn-ghost" id="resetBtn">Reset</button>
+      </div>
+      <div class="last-outcome" id="lastOutcome"></div>
+    </div>
+  </section>
+
+  <!-- ============ ASSIGNMENT TAB ============ -->
+  <section class="tab-panel" id="tab-assignment">
+    <div class="card">
+      <h2>Assignment</h2>
+      <p style="color:var(--gray); font-size:0.88rem;">Use the Simulate tab to run the trials each question asks for, then answer here. Parts marked with a number can be checked instantly; reflection parts are simply recorded.</p>
+
+      <div class="question">
+        <h3>Question 1 — Coin Flip</h3>
+        <div class="subpart">
+          <label>(a) Using Heads = 1 and Tails = 0, what is the theoretical mean of a fair coin flip?</label>
+          <div class="answer-row">
+            <input type="text" id="q1a" placeholder="e.g. 0.5">
+            <button class="check-btn" data-q="q1a">Check</button>
+          </div>
+          <div class="fb" id="fb-q1a"></div>
+        </div>
+        <div class="subpart">
+          <label>(b) In the Simulate tab, run at least 500 trials of the Coin Flip experiment. Record the sample mean you observed.</label>
+          <div class="answer-row">
+            <input type="text" id="q1b" placeholder="your result">
+            <button class="check-btn" data-q="q1b">Check</button>
+          </div>
+          <div class="fb" id="fb-q1b"></div>
+        </div>
+      </div>
+
+      <div class="question">
+        <h3>Question 2 — Die Roll</h3>
+        <div class="subpart">
+          <label>(a) Compute the theoretical mean of a fair six-sided die by hand: μ = (1+2+3+4+5+6)/6</label>
+          <div class="answer-row">
+            <input type="text" id="q2a" placeholder="e.g. 3.5">
+            <button class="check-btn" data-q="q2a">Check</button>
+          </div>
+          <div class="fb" id="fb-q2a"></div>
+        </div>
+        <div class="subpart">
+          <label>(b) In the Simulate tab, run at least 1000 trials of the Die Roll experiment. Record the sample mean you observed.</label>
+          <div class="answer-row">
+            <input type="text" id="q2b" placeholder="your result">
+            <button class="check-btn" data-q="q2b">Check</button>
+          </div>
+          <div class="fb" id="fb-q2b"></div>
+        </div>
+      </div>
+
+      <div class="question">
+        <h3>Question 3 — Custom Experiment</h3>
+        <div class="subpart">
+          <label>(a) Set the Custom experiment's probability to p = 0.2. As the number of trials grows very large, what value should the sample mean approach?</label>
+          <div class="answer-row">
+            <input type="text" id="q3a" placeholder="e.g. 0.2">
+            <button class="check-btn" data-q="q3a">Check</button>
+          </div>
+          <div class="fb" id="fb-q3a"></div>
+        </div>
+        <div class="subpart">
+          <label>(b) With p = 0.2, run at least 2000 trials in the Simulate tab. Record the sample mean you observed.</label>
+          <div class="answer-row">
+            <input type="text" id="q3b" placeholder="your result">
+            <button class="check-btn" data-q="q3b">Check</button>
+          </div>
+          <div class="fb" id="fb-q3b"></div>
+        </div>
+      </div>
+
+      <div class="question">
+        <h3>Question 4 — Reflection</h3>
+        <div class="subpart">
+          <label>(a) In your own words, state the Law of Large Numbers.</label>
+          <textarea id="q4a" placeholder="Type your answer..."></textarea>
+          <div class="answer-row" style="margin-top:6px;">
+            <button class="check-btn" data-q="q4a">Save</button>
+          </div>
+          <div class="fb" id="fb-q4a"></div>
+        </div>
+        <div class="subpart">
+          <label>(b) Why does the sample mean fluctuate a lot when n is small, but stabilize as n grows large?</label>
+          <textarea id="q4b" placeholder="Type your answer..."></textarea>
+          <div class="answer-row" style="margin-top:6px;">
+            <button class="check-btn" data-q="q4b">Save</button>
+          </div>
+          <div class="fb" id="fb-q4b"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESULTS TAB ============ -->
+  <section class="tab-panel" id="tab-results">
+    <div class="card">
+      <h2>Your Results</h2>
+      <div class="summary-row">
+        <div class="summary-box">
+          <div class="big" id="sumExact">0 / 3</div>
+          <div class="small">Theoretical mean questions correct</div>
+        </div>
+        <div class="summary-box">
+          <div class="big" id="sumBallpark">0 / 3</div>
+          <div class="small">Simulation results consistent with LLN</div>
+        </div>
+        <div class="summary-box">
+          <div class="big" id="sumReflect">0 / 2</div>
+          <div class="small">Reflection questions recorded</div>
+        </div>
+      </div>
+      <div id="reviewList"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* Tab switching */
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabPanels = document.querySelectorAll('.tab-panel');
+function activateTab(name) {
+  tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  tabPanels.forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  if (name === 'results') renderResults();
+  if (name === 'simulate') resizeAndDrawChart();
+}
+tabButtons.forEach(b => b.addEventListener('click', () => activateTab(b.dataset.tab)));
+document.getElementById('learnGotoSim').addEventListener('click', () => activateTab('simulate'));
+</script>
+
+<script>
+/* ================= Experiment definitions ================= */
+const experiments = {
+  coin: {
+    label: 'Coin Flip',
+    values: [0, 1],
+    probs: [0.5, 0.5],
+    mean: 0.5,
+    yDomain: [0, 1],
+    describe: 'Heads = 1, Tails = 0, each with probability 0.5. Theoretical mean = 0.5.',
+    outcomeLabel: v => v === 1 ? 'Heads (1)' : 'Tails (0)'
+  },
+  die: {
+    label: 'Die Roll',
+    values: [1, 2, 3, 4, 5, 6],
+    probs: [1/6, 1/6, 1/6, 1/6, 1/6, 1/6],
+    mean: 3.5,
+    yDomain: [1, 6],
+    describe: 'A fair six-sided die. Each face 1–6 equally likely. Theoretical mean = 3.5.',
+    outcomeLabel: v => 'Rolled a ' + v
+  },
+  custom: {
+    label: 'Custom (Biased Coin)',
+    values: [0, 1],
+    get probs() { return [1 - customP, customP]; },
+    get mean() { return customP; },
+    yDomain: [0, 1],
+    describe: 'A biased coin: outcome 1 with probability p, outcome 0 with probability (1 - p). Theoretical mean = p.',
+    outcomeLabel: v => v === 1 ? 'Success (1)' : 'Failure (0)'
+  }
+};
+
+let customP = 0.5;
+let currentExpKey = 'coin';
+let n = 0;
+let cumulativeSum = 0;
+let points = []; // {x: trialIndex, y: runningMean}
+let lastOutcomeText = '';
+
+function currentExp() { return experiments[currentExpKey]; }
+
+function drawOutcome(exp) {
+  const r = Math.random();
+  let cum = 0;
+  for (let i = 0; i < exp.values.length; i++) {
+    cum += exp.probs[i];
+    if (r <= cum) return exp.values[i];
+  }
+  return exp.values[exp.values.length - 1];
+}
+
+/* ================= Chart drawing ================= */
+const chartCanvas = document.getElementById('chart');
+const ctx = chartCanvas.getContext('2d');
+
+function resizeAndDrawChart() {
+  const rect = chartCanvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  chartCanvas.width = Math.max(1, Math.round(rect.width * dpr));
+  chartCanvas.height = Math.max(1, Math.round(rect.height * dpr));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawChart();
+}
+window.addEventListener('resize', resizeAndDrawChart);
+
+function drawChart() {
+  const w = chartCanvas.clientWidth;
+  const h = chartCanvas.clientHeight;
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = { left: 46, right: 16, top: 16, bottom: 30 };
+  const plotW = w - pad.left - pad.right;
+  const plotH = h - pad.top - pad.bottom;
+
+  const exp = currentExp();
+  let [yMin, yMax] = exp.yDomain;
+  // Add a little breathing room
+  const yPad = (yMax - yMin) * 0.12 || 0.1;
+  yMin -= yPad; yMax += yPad;
+
+  const maxX = Math.max(n, 10);
+
+  function xPix(trialIdx) { return pad.left + (trialIdx / maxX) * plotW; }
+  function yPix(val) { return pad.top + (1 - (val - yMin) / (yMax - yMin)) * plotH; }
+
+  // Axes
+  ctx.strokeStyle = '#d7dee8';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, pad.top);
+  ctx.lineTo(pad.left, pad.top + plotH);
+  ctx.lineTo(pad.left + plotW, pad.top + plotH);
+  ctx.stroke();
+
+  // Y-axis ticks
+  ctx.fillStyle = '#5b6472';
+  ctx.font = '11px -apple-system, Arial, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  const yTicks = 5;
+  for (let i = 0; i <= yTicks; i++) {
+    const val = yMin + (i / yTicks) * (yMax - yMin);
+    const py = yPix(val);
+    ctx.fillText(val.toFixed(2), pad.left - 8, py);
+    ctx.strokeStyle = '#f0f2f6';
+    ctx.beginPath();
+    ctx.moveTo(pad.left, py);
+    ctx.lineTo(pad.left + plotW, py);
+    ctx.stroke();
+  }
+
+  // X-axis ticks
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  const xTicks = 5;
+  for (let i = 0; i <= xTicks; i++) {
+    const val = Math.round((i / xTicks) * maxX);
+    const px = xPix(val);
+    ctx.fillText(String(val), px, pad.top + plotH + 8);
+  }
+
+  // Theoretical mean dashed line
+  ctx.strokeStyle = '#c0392b';
+  ctx.setLineDash([6, 5]);
+  ctx.lineWidth = 1.5;
+  const meanY = yPix(exp.mean);
+  ctx.beginPath();
+  ctx.moveTo(pad.left, meanY);
+  ctx.lineTo(pad.left + plotW, meanY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Running mean line
+  if (points.length > 0) {
+    ctx.strokeStyle = '#2e5aac';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    points.forEach((p, i) => {
+      const px = xPix(p.x);
+      const py = yPix(p.y);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Dot on the last point
+    const last = points[points.length - 1];
+    ctx.fillStyle = '#2e5aac';
+    ctx.beginPath();
+    ctx.arc(xPix(last.x), yPix(last.y), 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+/* ================= Stats / UI updates ================= */
+function updateStatsDisplay() {
+  const exp = currentExp();
+  document.getElementById('statN').textContent = n;
+  document.getElementById('statMean').textContent = n > 0 ? (cumulativeSum / n).toFixed(4) : '—';
+  document.getElementById('statTheory').textContent = String(Math.round(exp.mean * 10000) / 10000);
+  document.getElementById('statDiff').textContent = n > 0 ? Math.abs(cumulativeSum / n - exp.mean).toFixed(4) : '—';
+  document.getElementById('lastOutcome').innerHTML = lastOutcomeText;
+}
+
+function resetSimulation(showNote) {
+  n = 0;
+  cumulativeSum = 0;
+  points = [];
+  lastOutcomeText = showNote ? '<em>Simulation reset — experiment changed.</em>' : '';
+  updateStatsDisplay();
+  resizeAndDrawChart();
+}
+
+/* ================= Running trials (animated in chunks) ================= */
+let running = false;
+function runTrials(total) {
+  if (running) return;
+  running = true;
+  const exp = currentExp();
+  let processed = 0;
+  const chunksTarget = 50;
+  const chunkSize = Math.max(1, Math.ceil(total / chunksTarget));
+
+  function step() {
+    const remaining = total - processed;
+    const take = Math.min(chunkSize, remaining);
+    let lastV = null;
+    for (let i = 0; i < take; i++) {
+      const v = drawOutcome(exp);
+      cumulativeSum += v;
+      n += 1;
+      points.push({ x: n, y: cumulativeSum / n });
+      lastV = v;
+    }
+    processed += take;
+    if (lastV !== null) {
+      lastOutcomeText = 'Last outcome (trial #' + n + '): <strong>' + exp.outcomeLabel(lastV) + '</strong>';
+    }
+    updateStatsDisplay();
+    drawChart();
+    if (processed < total) {
+      requestAnimationFrame(step);
+    } else {
+      running = false;
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+/* ================= Experiment picker wiring ================= */
+const expButtons = document.querySelectorAll('.exp-btn');
+const customControls = document.getElementById('customControls');
+const pSlider = document.getElementById('pSlider');
+const pVal = document.getElementById('pVal');
+const expDescription = document.getElementById('expDescription');
+
+function selectExperiment(key) {
+  currentExpKey = key;
+  expButtons.forEach(b => b.classList.toggle('active', b.dataset.exp === key));
+  customControls.classList.toggle('show', key === 'custom');
+  expDescription.textContent = experiments[key].describe;
+  resetSimulation(true);
+}
+expButtons.forEach(b => b.addEventListener('click', () => selectExperiment(b.dataset.exp)));
+
+pSlider.addEventListener('input', () => {
+  customP = parseFloat(pSlider.value);
+  pVal.textContent = customP.toFixed(2);
+  if (currentExpKey === 'custom') {
+    expDescription.textContent = experiments.custom.describe;
+    resetSimulation(true);
+  }
+});
+
+document.getElementById('stepOnceBtn').addEventListener('click', () => runTrials(1));
+document.getElementById('runBatchBtn').addEventListener('click', () => {
+  const val = parseInt(document.getElementById('batchN').value, 10);
+  const total = Math.min(20000, Math.max(1, isNaN(val) ? 100 : val));
+  runTrials(total);
+});
+document.getElementById('resetBtn').addEventListener('click', () => resetSimulation(false));
+
+/* Initialize */
+selectExperiment('coin');
+</script>
+
+<script>
+/* ================= Assignment checking ================= */
+function normalizeText(s) {
+  return s.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+function parseNumber(s) {
+  const cleaned = s.trim().replace(/[^0-9.\-]/g, '');
+  const val = parseFloat(cleaned);
+  return isNaN(val) ? null : val;
+}
+
+// exact-check questions: [expected value, tolerance]
+const exactChecks = {
+  q1a: { expected: 0.5, tol: 0.02 },
+  q2a: { expected: 3.5, tol: 0.05 },
+  q3a: { expected: 0.2, tol: 0.02 }
+};
+// ballpark-check questions: [theoretical target, tolerance]
+const ballparkChecks = {
+  q1b: { target: 0.5, tol: 0.15 },
+  q2b: { target: 3.5, tol: 0.5 },
+  q3b: { target: 0.2, tol: 0.12 }
+};
+// reflection (recorded, not graded)
+const reflectionIds = ['q4a', 'q4b'];
+
+const answerState = {}; // qid -> {status: 'correct'|'incorrect'|'recorded'|'empty', raw: string}
+
+function checkQuestion(qid) {
+  const input = document.getElementById(qid);
+  const fb = document.getElementById('fb-' + qid);
+  const raw = input.value;
+
+  if (reflectionIds.includes(qid)) {
+    if (normalizeText(raw).length === 0) {
+      fb.className = 'fb incorrect';
+      fb.textContent = 'Please enter a response before saving.';
+      answerState[qid] = { status: 'empty', raw: '' };
+    } else {
+      fb.className = 'fb recorded';
+      fb.textContent = 'Recorded ✓';
+      answerState[qid] = { status: 'recorded', raw: raw };
+    }
+    return;
+  }
+
+  const num = parseNumber(raw);
+  if (num === null) {
+    fb.className = 'fb incorrect';
+    fb.textContent = 'Please enter a numeric value.';
+    answerState[qid] = { status: 'empty', raw: raw };
+    return;
+  }
+
+  if (exactChecks[qid]) {
+    const { expected, tol } = exactChecks[qid];
+    const correct = Math.abs(num - expected) <= tol;
+    fb.className = 'fb ' + (correct ? 'correct' : 'incorrect');
+    fb.textContent = correct ? 'Correct!' : ('Not quite — the theoretical mean here is ' + expected + '.');
+    answerState[qid] = { status: correct ? 'correct' : 'incorrect', raw: raw };
+  } else if (ballparkChecks[qid]) {
+    const { target, tol } = ballparkChecks[qid];
+    const close = Math.abs(num - target) <= tol;
+    fb.className = 'fb ' + (close ? 'correct' : 'incorrect');
+    fb.textContent = close
+      ? 'Nice — that is consistent with the Law of Large Numbers (close to ' + target + ').'
+      : 'That seems far from the theoretical mean of ' + target + '. Try running more trials — the average should settle down as n grows.';
+    answerState[qid] = { status: close ? 'correct' : 'incorrect', raw: raw };
+  }
+}
+
+document.querySelectorAll('.check-btn').forEach(btn => {
+  btn.addEventListener('click', () => checkQuestion(btn.dataset.q));
+});
+
+/* ================= Results rendering ================= */
+const questionMeta = [
+  { id: 'q1a', label: 'Q1(a)', kind: 'exact' },
+  { id: 'q1b', label: 'Q1(b)', kind: 'ballpark' },
+  { id: 'q2a', label: 'Q2(a)', kind: 'exact' },
+  { id: 'q2b', label: 'Q2(b)', kind: 'ballpark' },
+  { id: 'q3a', label: 'Q3(a)', kind: 'exact' },
+  { id: 'q3b', label: 'Q3(b)', kind: 'ballpark' },
+  { id: 'q4a', label: 'Q4(a)', kind: 'reflect' },
+  { id: 'q4b', label: 'Q4(b)', kind: 'reflect' }
+];
+
+function renderResults() {
+  let exactCorrect = 0, ballparkCorrect = 0, reflectRecorded = 0;
+  const list = document.getElementById('reviewList');
+  list.innerHTML = '';
+
+  questionMeta.forEach(meta => {
+    const state = answerState[meta.id];
+    const div = document.createElement('div');
+    div.className = 'review-item';
+
+    let tagHtml = '<span class="tag empty">Not answered</span>';
+    let answerText = '';
+
+    if (state) {
+      answerText = state.raw ? ('“' + state.raw + '”') : '';
+      if (meta.kind === 'exact' || meta.kind === 'ballpark') {
+        if (state.status === 'correct') { tagHtml = '<span class="tag correct">Correct</span>'; }
+        else if (state.status === 'incorrect') { tagHtml = '<span class="tag incorrect">Needs review</span>'; }
+        if (meta.kind === 'exact' && state.status === 'correct') exactCorrect++;
+        if (meta.kind === 'ballpark' && state.status === 'correct') ballparkCorrect++;
+      } else if (meta.kind === 'reflect') {
+        if (state.status === 'recorded') { tagHtml = '<span class="tag recorded">Recorded</span>'; reflectRecorded++; }
+      }
+    }
+
+    div.innerHTML = '<span class="q-label">' + meta.label + '</span>' + answerText + tagHtml;
+    list.appendChild(div);
+  });
+
+  document.getElementById('sumExact').textContent = exactCorrect + ' / 3';
+  document.getElementById('sumBallpark').textContent = ballparkCorrect + ' / 3';
+  document.getElementById('sumReflect').textContent = reflectRecorded + ' / 2';
+}
+</script>
+</body>
+</html>
